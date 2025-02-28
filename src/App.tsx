@@ -6,13 +6,16 @@ import useFetch from './hooks/useFetch';
 const App: React.FC = () => {
 	const { data, loading, error } = useFetch(
 		'https://cataas.com/api/cats?limit=15',
+		{
+			save: true,
+			savingMethod: 'session',
+		},
 	);
 
 	if (loading) return <p>Loading...</p>;
 
 	if (error) return <p>Error...</p>;
 
-	console.log(data);
 	return (
 		<div className="flex flex-col items-center App">
 			<h1>Random Cats</h1>

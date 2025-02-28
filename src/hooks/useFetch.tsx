@@ -1,36 +1,100 @@
 import axios, { AxiosError } from 'axios';
 import { useCallback, useEffect, useState } from 'react';
 
+import { UseFetchOptions } from '../types/types';
+
 /**
- * useFetch hook for fetching data from an API.
- * @param url - The URL for the API request.
- * @returns An object containing the data, loading state, error, and a refetch function.
+ * useFetch hook for fetching data from an API with optional saving.
+ * Supports caching across three storage mechanisms: sessionStorage, localStorage, and Cache Storage.
  *
- * Example without specifying the type:
+ * @param url - The URL for the API request.
+ * @param options - Configuration options for the hook.
+ *
+ * Example without saving:
  * const { data, loading, error } = useFetch('https://api.example.com/data');
  *
- * Example with a specified type:
+ * Example with localStorage saving:
  * interface Cat { id: string }
- * const { data, loading, error } = useFetch<Cat[]>('https://api.example.com/cats');
+ * const { data, loading, error } = useFetch<Cat[]>('https://api.example.com/cats', { save: true, savingMethod: 'local' });
  */
-function useFetch<T = any>(url: string) {
+function useFetch<T = any>(url: string, options: UseFetchOptions = {}) {
+	const { save = false, savingMethod = 'cache' } = options;
 	const [data, setData] = useState<T | null>(null);
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<AxiosError | null>(null);
 
+	const getSavedData = async (): Promise<T | null> => {
+		if (!save) return null;
+
+		try {
+			if (savingMethod === 'session') {
+				const item = sessionStorage.getItem(url);
+				if (item) {
+					return JSON.parse(item) as T;
+				}
+			} else if (savingMethod === 'local') {
+				const item = localStorage.getItem(url);
+				if (item) {
+					return JSON.parse(item) as T;
+				}
+			} else if (savingMethod === 'cache' && typeof caches !== 'undefined') {
+				const cacheStorage = await caches.open('useFetchCache');
+				const cachedResponse = await cacheStorage.match(new Request(url));
+				if (cachedResponse) {
+					return (await cachedResponse.json()) as T;
+				}
+			}
+		} catch (cacheError) {
+			console.error('Cache retrieval error:', cacheError);
+		}
+		return null;
+	};
+
+	const setSavedData = async (dataToSave: T): Promise<void> => {
+		if (!save) return;
+
+		try {
+			const dataString = JSON.stringify(dataToSave);
+			if (savingMethod === 'session') {
+				sessionStorage.setItem(url, dataString);
+			} else if (savingMethod === 'local') {
+				localStorage.setItem(url, dataString);
+			} else if (savingMethod === 'cache' && typeof caches !== 'undefined') {
+				const cacheStorage = await caches.open('useFetchCache');
+				const responseToCache = new Response(dataString, {
+					headers: { 'Content-Type': 'application/json' },
+				});
+				await cacheStorage.put(new Request(url), responseToCache);
+			}
+		} catch (cacheError) {
+			console.error('Cache storage error:', cacheError);
+		}
+	};
+
 	const fetchData = useCallback(async () => {
+		// Attempt to retrieve  data if saving is enabled.
+		const savedData = await getSavedData();
+		if (savedData !== null) {
+			setData(savedData);
+			return;
+		}
+
 		setLoading(true);
 		setError(null);
 
 		try {
 			const response = await axios.get<T>(url);
 			setData(response.data);
+			// Store data after successful fetch.
+			if (save) {
+				await setSavedData(response.data);
+			}
 		} catch (err) {
 			setError(err as AxiosError);
 		} finally {
 			setLoading(false);
 		}
-	}, [url]);
+	}, [url, save, savingMethod]);
 
 	useEffect(() => {
 		fetchData();
