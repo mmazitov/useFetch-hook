@@ -14,7 +14,7 @@ Then, import the hook into your component: <br />
 A simple example without specifying a type and saving:
 
 ```
-const { data, loading, error } = useFetch('https://api.example.com/data');
+const { data, loading, error } = useFetch('https://cataas.com/api/cats?limit=15');
 ```
 
 Usage with a specified type and localStorage saving:
@@ -24,29 +24,29 @@ interface Cat {
   id: string;
 }
 
-const { data, loading, error } = useFetch<Cat[]>('https://cataas.com/api/cats', { save: true, savingMethod: 'local' });
+const { data, loading, error } = useFetch<Cat[]>('https://cataas.com/api/cats?limit=15', { save: true, savingMethod: 'local' });
 ```
 
 <h2>API</h2>
 
 The <code>useFetch</code> hook takes one argument: <br/>
 
-- <code>url: string</code> — The API URL to fetch data from.<br/>
-- <code>options: UseFetchOptions</code> (optional) — Configuration options for caching.
+- <code>url: string</code> - The API URL to fetch data from.<br/>
+- <code>options: UseFetchOptions</code> (optional) - Configuration options for caching.
 
 The hook returns an object with the following properties:
 
-- <code>data: T | null</code> — The fetched data (the type can be specified when calling the hook).<br/>
-- <code>loading: boolean</code> — The loading state (true while fetching data).<br/>
-- <code>error: AxiosError | null</code> — The request error (if any).<br/>
-- <code>refetch: () => void</code>> — A function to manually trigger a new request.
+- <code>data: T | null</code> - The fetched data (the type can be specified when calling the hook).<br/>
+- <code>loading: boolean</code> - The loading state (true while fetching data).<br/>
+- <code>error: AxiosError | null</code> - The request error (if any).<br/>
+- <code>refetch: () => void</code>> - A function to manually trigger a new request.
 
 <h2>Saving Options</h2>
 <code>useFetch</code> supports saving across three storage mechanisms:
 
-- **sessionStorage** (<code>savingMethod: 'session'</code>) — Stores data in session storage.
-- **localStorage** (<code>savingMethod: 'local'</code>) — Stores data persistently in local storage.
-- **Cache Storage** (<code>savingMethod: 'cache'</code>) — Uses the Cache API to store responses.
+- **sessionStorage** (<code>savingMethod: 'session'</code>) - Stores data in session storage.
+- **localStorage** (<code>savingMethod: 'local'</code>) - Stores data persistently in local storage.
+- **Cache Storage** (<code>savingMethod: 'cache'</code>) - Uses the Cache API to store responses.
 
 <h2>Example usage with Refetching and Saving</h2>
 
