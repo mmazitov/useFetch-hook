@@ -23,6 +23,10 @@ function useFetch<T = any>(url: string, options: UseFetchOptions = {}) {
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<AxiosError | null>(null);
 
+	/**
+	 * Retrieves saved data from the specified storage method.
+	 * @returns The saved data or null if not found.
+	 */
 	const getSavedData = async (): Promise<T | null> => {
 		if (!save) return null;
 
@@ -50,6 +54,10 @@ function useFetch<T = any>(url: string, options: UseFetchOptions = {}) {
 		return null;
 	};
 
+	/**
+	 * Saves data to the specified storage method.
+	 * @param dataToSave - The data to save.
+	 */
 	const setSavedData = async (dataToSave: T): Promise<void> => {
 		if (!save) return;
 
@@ -71,8 +79,11 @@ function useFetch<T = any>(url: string, options: UseFetchOptions = {}) {
 		}
 	};
 
+	/**
+	 * Fetches data from the API and handles saving if enabled.
+	 */
 	const fetchData = useCallback(async () => {
-		// Attempt to retrieve  data if saving is enabled.
+		// Attempt to retrieve saved data if saving is enabled.
 		const savedData = await getSavedData();
 		if (savedData !== null) {
 			setData(savedData);
@@ -96,6 +107,7 @@ function useFetch<T = any>(url: string, options: UseFetchOptions = {}) {
 		}
 	}, [url, save, savingMethod]);
 
+	// Fetch data when the component mounts or the URL changes
 	useEffect(() => {
 		fetchData();
 	}, [fetchData]);
