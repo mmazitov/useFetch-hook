@@ -6,7 +6,7 @@
 
 <h2>Installation</h2>
 The hook uses axios for HTTP requests. Make sure axios is installed in your project: <br/>
-<code>npm install @your-scope/dropdown</code> <br />
+<code>npm install axios</code> <br />
 Then, import the hook into your component: <br />
 <code>import useFetch from './hooks/useFetch';</code>
 
